@@ -1,0 +1,600 @@
+
+import os
+def contraseña_segura(c):
+    mayuscula = False
+    minuscula = False
+    numero = False
+    
+    for x in c:
+        if x >= 'A' and x <= 'Z':
+            mayuscula = True
+        if x >= 'a' and x <= 'z':
+            minuscula = True
+        if x >= '0' and x <= '9':
+            numero = True
+    
+    if mayuscula and minuscula and numero:
+        return True
+    else:
+        return False
+
+
+def registrar_usuario():
+    print("\n=== REGISTRO DE USUARIO ===")
+    print("\nSeleccione tipo de usuario:")
+    print("1. Cliente")
+    print("2. Administrador")
+    tipo = input("Opción: ")
+    
+    if tipo == "1":
+        rol = "Cliente"
+    elif tipo == "2":
+        rol = "Administrador"
+    else:
+        print(" Opción inválida")
+        return
+    
+    nombre = input("Ingrese su nombre: ")
+    apellido = input("Ingrese su apellido: ")
+    identificacion = input("Ingrese su cédula: ")
+    edad = input("Ingrese su edad: ")
+    usuario = input("Ingrese su usuario: ")
+    contraseña = input("Ingrese una contraseña: ")
+
+    if contraseña_segura(contraseña) == False:
+        print(" Contraseña no válida")
+        print("Debe contener: mayúsculas, minúsculas y números")
+        return
+
+    archivo = open("usuarios.txt", "a")
+    archivo.write(rol + "|" + usuario + "|" + contraseña + "|" + nombre + "|" + apellido + "|" + identificacion + "|" + edad + "\n")
+    archivo.close()
+    
+    print(f" Registro exitoso como {rol}")
+
+
+def iniciar_sesion():
+    
+    print("\n=== INICIO DE SESIÓN ===")
+    usuario = input("Ingrese su usuario: ")
+    contraseña = input("Ingrese su contraseña: ")
+    
+    try:
+        archivo = open("usuarios.txt", "r")
+        for linea in archivo:
+            datos = linea.strip().split("|")
+            
+            if len(datos) >= 3:
+                if datos[1] == usuario and datos[2] == contraseña:
+                    archivo.close()
+                    return datos[0] 
+        archivo.close()
+    except FileNotFoundError:
+        print(" No hay usuarios registrados")
+    except Exception as e:
+        print(f" Error al leer usuarios: {e}")
+    
+    return None
+
+
+def cargar_centros():
+
+    centros = []
+    try:
+        archivo = open("centros.txt", "r")
+        for linea in archivo:
+            partes = linea.strip().split("|")
+            centro = {
+                'id': partes[0],
+                'nombre': partes[1],
+                'rutas': []
+            }
+            i = 2
+            while i + 2 < len(partes):
+                ruta = {
+                    'destino': partes[i],
+                    'distancia': float(partes[i+1]),
+                    'costo': float(partes[i+2])
+                }
+                centro['rutas'].append(ruta)
+                i += 3
+            centros.append(centro)
+        archivo.close()
+    except:
+        pass
+    return centros
+
+
+def guardar_centros(centros):
+    archivo = open("centros.txt", "w")
+    for centro in centros:
+        linea = centro['id'] + "|" + centro['nombre']
+        for ruta in centro['rutas']:
+            linea += "|" + ruta['destino'] + "|" + str(ruta['distancia']) + "|" + str(ruta['costo'])
+        archivo.write(linea + "\n")
+    archivo.close()
+    print("Información guardada en centros.txt")
+
+
+
+def agregar_centro(centros):
+    print("\n--- AGREGAR CENTRO ---")
+    id_centro = input("ID del centro: ")
+    
+    for c in centros:
+        if c['id'] == id_centro:
+            print("Ya existe un centro con ese ID")
+            return
+    
+    nombre = input("Nombre del centro: ")
+    
+    centro = {
+        'id': id_centro,
+        'nombre': nombre,
+        'rutas': []
+    }
+    centros.append(centro)
+    print("Centro agregado exitosamente")
+
+
+def agregar_ruta(centros):
+    print("\n--- AGREGAR RUTA ---")
+    id_origen = input("ID del centro origen: ")
+    
+    centro_encontrado = None
+    for c in centros:
+        if c['id'] == id_origen:
+            centro_encontrado = c
+            break
+    
+    if centro_encontrado == None:
+        print("Centro origen no encontrado")
+        return
+    
+    id_destino = input("ID del centro destino: ")
+    distancia = float(input("Distancia (km): "))
+    costo = float(input("Costo ($): "))
+    
+    ruta = {
+        'destino': id_destino,
+        'distancia': distancia,
+        'costo': costo
+    }
+    centro_encontrado['rutas'].append(ruta)
+    print("Ruta agregada exitosamente")
+
+
+def actualizar_centro(centros):
+    print("\n--- ACTUALIZAR CENTRO ---")
+    id_centro = input("ID del centro: ")
+    
+    for c in centros:
+        if c['id'] == id_centro:
+            print(f"Nombre actual: {c['nombre']}")
+            nuevo_nombre = input("Nuevo nombre: ")
+            c['nombre'] = nuevo_nombre
+            print(" Centro actualizado")
+            return
+    
+    print(" Centro no encontrado")
+
+
+def actualizar_ruta(centros):
+    print("\n--- ACTUALIZAR RUTA ---")
+    id_origen = input("ID del centro origen: ")
+    
+    centro_encontrado = None
+    for c in centros:
+        if c['id'] == id_origen:
+            centro_encontrado = c
+            break
+    
+    if centro_encontrado == None:
+        print(" Centro origen no encontrado")
+        return
+    
+    id_destino = input("ID del centro destino: ")
+    
+    for ruta in centro_encontrado['rutas']:
+        if ruta['destino'] == id_destino:
+            print(f"Distancia actual: {ruta['distancia']} km")
+            print(f"Costo actual: ${ruta['costo']}")
+            ruta['distancia'] = float(input("Nueva distancia: "))
+            ruta['costo'] = float(input("Nuevo costo: "))
+            print("✓ Ruta actualizada")
+            return
+    
+    print(" Ruta no encontrada")
+
+
+def eliminar_centro(centros):
+    print("\n--- ELIMINAR CENTRO ---")
+    id_centro = input("ID del centro: ")
+    
+    for i in range(len(centros)):
+        if centros[i]['id'] == id_centro:
+            print(f"¿Seguro de eliminar '{centros[i]['nombre']}'? (S/N)")
+            confirmacion = input().upper()
+            if confirmacion == 'S':
+                centros.pop(i)
+                print(" Centro eliminado")
+            else:
+                print("Eliminación cancelada")
+            return
+    
+    print(" Centro no encontrado")
+
+
+def eliminar_ruta(centros):
+    print("\n--- ELIMINAR RUTA ---")
+    id_origen = input("ID del centro origen: ")
+    
+    centro_encontrado = None
+    for c in centros:
+        if c['id'] == id_origen:
+            centro_encontrado = c
+            break
+    
+    if centro_encontrado == None:
+        print(" Centro origen no encontrado")
+        return
+    
+    id_destino = input("ID del centro destino: ")
+    
+    for i in range(len(centro_encontrado['rutas'])):
+        if centro_encontrado['rutas'][i]['destino'] == id_destino:
+            centro_encontrado['rutas'].pop(i)
+            print(" Ruta eliminada")
+            return
+    
+    print(" Ruta no encontrada")
+
+
+
+def ordenamiento_burbuja(centros):
+    n = len(centros)
+    for i in range(n):
+        for j in range(0, n-i-1):
+            if centros[j]['nombre'] > centros[j+1]['nombre']:
+                centros[j], centros[j+1] = centros[j+1], centros[j]
+
+
+def ordenamiento_insercion(centros):
+    for i in range(1, len(centros)):
+        clave = centros[i]
+        j = i - 1
+        while j >= 0 and centros[j]['nombre'] > clave['nombre']:
+            centros[j+1] = centros[j]
+            j -= 1
+        centros[j+1] = clave
+
+
+def ordenamiento_seleccion(centros):
+    n = len(centros)
+    for i in range(n):
+        min_idx = i
+        for j in range(i+1, n):
+            if centros[j]['nombre'] < centros[min_idx]['nombre']:
+                min_idx = j
+        centros[i], centros[min_idx] = centros[min_idx], centros[i]
+
+
+def merge_sort(lista):
+    if len(lista) <= 1:
+        return lista
+    
+    medio = len(lista) // 2
+    izq = merge_sort(lista[:medio])
+    der = merge_sort(lista[medio:])
+    
+    return merge(izq, der)
+
+
+def merge(izq, der):
+    resultado = []
+    i = j = 0
+    
+    while i < len(izq) and j < len(der):
+        if izq[i]['nombre'] <= der[j]['nombre']:
+            resultado.append(izq[i])
+            i += 1
+        else:
+            resultado.append(der[j])
+            j += 1
+    
+    resultado.extend(izq[i:])
+    resultado.extend(der[j:])
+    return resultado
+
+
+def quick_sort(lista):
+    if len(lista) <= 1:
+        return lista
+    
+    pivote = lista[len(lista)//2]['nombre']
+    izq = [x for x in lista if x['nombre'] < pivote]
+    medio = [x for x in lista if x['nombre'] == pivote]
+    der = [x for x in lista if x['nombre'] > pivote]
+    
+    return quick_sort(izq) + medio + quick_sort(der)
+
+
+def listar_centros(centros):
+    if len(centros) == 0:
+        print("\n No hay centros registrados")
+        return
+    
+    print("\n--- LISTAR CENTROS ---")
+    print("1. Burbuja")
+    print("2. Inserción")
+    print("3. Selección")
+    print("4. Merge Sort")
+    print("5. Quick Sort")
+    
+    opcion = input("Algoritmo: ")
+    
+    if opcion == "1":
+        ordenamiento_burbuja(centros)
+        print("\n[Ordenado con Burbuja]")
+    elif opcion == "2":
+        ordenamiento_insercion(centros)
+        print("\n[Ordenado con Inserción]")
+    elif opcion == "3":
+        ordenamiento_seleccion(centros)
+        print("\n[Ordenado con Selección]")
+    elif opcion == "4":
+        centros_ord = merge_sort(centros.copy())
+        centros.clear()
+        centros.extend(centros_ord)
+        print("\n[Ordenado con Merge Sort]")
+    elif opcion == "5":
+        centros_ord = quick_sort(centros.copy())
+        centros.clear()
+        centros.extend(centros_ord)
+        print("\n[Ordenado con Quick Sort]")
+    else:
+        print(" Opción inválida")
+        return
+    
+    print("\n=== CENTROS Y RUTAS ===")
+    for c in centros:
+        print(f"\nID: {c['id']} | Nombre: {c['nombre']}")
+        if len(c['rutas']) > 0:
+            print("  Rutas:")
+            for r in c['rutas']:
+                print(f"    → {r['destino']} | {r['distancia']} km | ${r['costo']}")
+        else:
+            print("  Sin rutas")
+
+
+def busqueda_lineal(centros, nombre):
+    resultados = []
+    for c in centros:
+        if nombre.lower() in c['nombre'].lower():
+            resultados.append(c)
+    return resultados
+
+
+def busqueda_binaria(centros, nombre):
+    centros_ord = quick_sort(centros.copy())
+    
+    izq = 0
+    der = len(centros_ord) - 1
+    
+    while izq <= der:
+        medio = (izq + der) // 2
+        if centros_ord[medio]['nombre'].lower() == nombre.lower():
+            return [centros_ord[medio]]
+        elif centros_ord[medio]['nombre'].lower() < nombre.lower():
+            izq = medio + 1
+        else:
+            der = medio - 1
+    
+    return []
+
+
+def busqueda_interpolacion(centros, id_buscar):
+    try:
+        centros_ord = sorted(centros.copy(), key=lambda x: int(x['id']))
+        
+        bajo = 0
+        alto = len(centros_ord) - 1
+        
+        while bajo <= alto and int(id_buscar) >= int(centros_ord[bajo]['id']) and int(id_buscar) <= int(centros_ord[alto]['id']):
+            if bajo == alto:
+                if int(centros_ord[bajo]['id']) == int(id_buscar):
+                    return [centros_ord[bajo]]
+                return []
+            
+            pos = bajo + int(((alto - bajo) / (int(centros_ord[alto]['id']) - int(centros_ord[bajo]['id']))) * (int(id_buscar) - int(centros_ord[bajo]['id'])))
+            
+            if int(centros_ord[pos]['id']) == int(id_buscar):
+                return [centros_ord[pos]]
+            
+            if int(centros_ord[pos]['id']) < int(id_buscar):
+                bajo = pos + 1
+            else:
+                alto = pos - 1
+        
+        return []
+    except:
+        print(" Error en búsqueda")
+        return []
+
+
+def consultar_centro(centros):
+    if len(centros) == 0:
+        print("\n No hay centros registrados")
+        return
+    
+    print("\n--- CONSULTAR CENTRO ---")
+    print("1. Búsqueda Lineal (nombre)")
+    print("2. Búsqueda Binaria (nombre exacto)")
+    print("3. Búsqueda Interpolación (ID)")
+    
+    opcion = input("Opción: ")
+    
+    if opcion == "1":
+        nombre = input("Nombre: ")
+        resultados = busqueda_lineal(centros, nombre)
+        print("\n[Búsqueda Lineal]")
+    elif opcion == "2":
+        nombre = input("Nombre exacto: ")
+        resultados = busqueda_binaria(centros, nombre)
+        print("\n[Búsqueda Binaria]")
+    elif opcion == "3":
+        id_c = input("ID: ")
+        resultados = busqueda_interpolacion(centros, id_c)
+        print("\n[Búsqueda Interpolación]")
+    else:
+        print(" Opción inválida")
+        return
+    
+    if resultados:
+        print(f"\nEncontrados: {len(resultados)}")
+        for c in resultados:
+            print(f"\nID: {c['id']} | Nombre: {c['nombre']}")
+            if len(c['rutas']) > 0:
+                print("  Rutas:")
+                for r in c['rutas']:
+                    print(f"    → {r['destino']} | {r['distancia']} km | ${r['costo']}")
+    else:
+        print(" No se encontró")
+
+
+def menu_admin():
+    centros = cargar_centros()
+    print("\n" + "="*50)
+    print(" Datos cargados desde centros.txt")
+    print(" Acceso al MENÚ ADMINISTRADOR concedido")
+    print("="*50)
+    input("\nPresione ENTER para continuar...")
+    
+    while True:
+        print("\n\n" + "="*50)
+        print("MENÚ ADMINISTRADOR")
+        print("="*50)
+        print("1. Agregar Centro")
+        print("2. Agregar Ruta")
+        print("3. Listar Centros")
+        print("4. Consultar Centro")
+        print("5. Actualizar Centro")
+        print("6. Actualizar Ruta")
+        print("7. Eliminar Centro")
+        print("8. Eliminar Ruta")
+        print("9. Guardar y Salir")
+        print("="*50)
+        
+        op = input("\nOpción: ")
+        
+        if op == "1":
+            agregar_centro(centros)
+        elif op == "2":
+            agregar_ruta(centros)
+        elif op == "3":
+            listar_centros(centros)
+        elif op == "4":
+            consultar_centro(centros)
+        elif op == "5":
+            actualizar_centro(centros)
+        elif op == "6":
+            actualizar_ruta(centros)
+        elif op == "7":
+            eliminar_centro(centros)
+        elif op == "8":
+            eliminar_ruta(centros)
+        elif op == "9":
+            guardar_centros(centros)
+            print("\n¡Datos guardados!")
+            print("Saliendo del menú administrador...")
+            input("Presione ENTER para continuar...")
+            break
+        else:
+            print("Opción inválida")
+
+
+def menu_cliente():
+    centros = cargar_centros()
+    print("\n" + "="*50)
+    print(" Bienvenido al MENÚ CLIENTE")
+    print("="*50)
+    input("\nPresione ENTER para continuar...")
+    
+    while True:
+        print("\n\n" + "="*50)
+        print("MENÚ CLIENTE")
+        print("="*50)
+        print("1. Ver Centros")
+        print("2. Buscar Centro")
+        print("3. Salir")
+        print("="*50)
+        
+        op = input("\nOpción: ")
+        
+        if op == "1":
+            if len(centros) == 0:
+                print("\n No hay centros disponibles")
+                print("Solicite al administrador que agregue centros")
+            else:
+                print("\n" + "="*50)
+                print("LISTA DE CENTROS DISPONIBLES")
+                print("="*50)
+                for c in centros:
+                    print(f"\nID: {c['id']} | {c['nombre']}")
+                    if len(c['rutas']) > 0:
+                        print("  Rutas:")
+                        for r in c['rutas']:
+                            print(f"    → {r['destino']} | {r['distancia']} km | ${r['costo']}")
+                    else:
+                        print("  Sin rutas disponibles")
+        elif op == "2":
+            nombre = input("\nNombre del centro: ")
+            resultados = busqueda_lineal(centros, nombre)
+            if resultados:
+                print(f"\n Se encontraron {len(resultados)} resultado(s):")
+                for c in resultados:
+                    print(f"\nID: {c['id']} | {c['nombre']}")
+                    if len(c['rutas']) > 0:
+                        for r in c['rutas']:
+                            print(f"  → {r['destino']} | {r['distancia']} km | ${r['costo']}")
+            else:
+                print("\n No se encontró ningún centro con ese nombre")
+        elif op == "3":
+            print("\nSaliendo del menú cliente...")
+            input("Presione ENTER para continuar...")
+            break
+        else:
+            print(" Opción inválida")
+
+while True:
+    print("\n" + "="*50)
+    print("SISTEMA DE GESTIÓN DE CENTROS Y RUTAS")
+    print("="*50)
+    print("1. Registrarse")
+    print("2. Iniciar sesión")
+    print("3. Salir")
+    
+    opcion = input("\nOpción: ")
+    
+    if opcion == "1":
+        registrar_usuario()
+        
+    elif opcion == "2":
+        rol = iniciar_sesion()
+        if rol != None:
+            print(f"\n Bienvenido {rol}")
+            
+            if rol == "Administrador":
+                menu_admin()
+            elif rol == "Cliente":
+                menu_cliente()
+                
+        else:
+            print(" Credenciales incorrectas")
+            
+    elif opcion == "3":
+        print("\n¡Hasta pronto!")
+        break
+        
+    else:
+        print(" Opción inválida")

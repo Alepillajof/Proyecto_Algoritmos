@@ -170,3 +170,5 @@ while True:
     elif opcion == "3":
         print("Saliendo...")
         break
+Rename folder to remove :
+

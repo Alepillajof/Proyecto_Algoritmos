@@ -1,0 +1,176 @@
+def cargar_centros():
+    centros = []
+    try:
+        archivo = open("centros.txt", "r")
+        for linea in archivo:
+            centros.append(linea.strip().split("|"))
+        archivo.close()
+    except:
+        pass
+    return centros
+
+
+def guardar_centros(centros):
+    archivo = open("centros.txt", "w")
+    for c in centros:
+        archivo.write("|".join(c) + "\n")
+    archivo.close()
+
+
+def agregar_centro(centros):
+    nombre = input("Nombre del centro: ")
+    ruta = input("Ruta: ")
+    distancia = input("Distancia: ")
+    costo = input("Costo: ")
+
+    centros.append(["Centro", nombre, ruta, distancia, costo])
+    print("Centro agregado")
+
+
+def burbuja(centros):
+    n = len(centros)
+    for i in range(n):
+        for j in range(n - 1):
+            if centros[j][1] > centros[j + 1][1]:
+                centros[j], centros[j + 1] = centros[j + 1], centros[j]
+
+
+def listar_centros(centros):
+    burbuja(centros)
+    for c in centros:
+        print(c)
+
+
+def busqueda_lineal(centros, nombre):
+    for c in centros:
+        if c[1] == nombre:
+            return c
+    return None
+
+
+def busqueda_binaria(centros, nombre):
+    burbuja(centros)
+    inicio = 0
+    fin = len(centros) - 1
+
+    while inicio <= fin:
+        medio = (inicio + fin) // 2
+        if centros[medio][1] == nombre:
+            return centros[medio]
+        elif centros[medio][1] < nombre:
+            inicio = medio + 1
+        else:
+            fin = medio - 1
+    return None
+
+
+
+def busqueda_interpolacion(centros, nombre):
+    burbuja(centros)
+    bajo = 0
+    alto = len(centros) - 1
+
+    while bajo <= alto:
+        if centros[bajo][1] == nombre:
+            return centros[bajo]
+        if centros[alto][1] == nombre:
+            return centros[alto]
+        bajo += 1
+        alto -= 1
+    return None
+
+
+def consultar_centro(centros):
+    print("\n1. Lineal")
+    print("2. Binaria")
+    print("3. Interpolación")
+    op = input("Tipo de búsqueda: ")
+    nombre = input("Nombre del centro: ")
+
+    if op == "1":
+        r = busqueda_lineal(centros, nombre)
+    elif op == "2":
+        r = busqueda_binaria(centros, nombre)
+    else:
+        r = busqueda_interpolacion(centros, nombre)
+
+    if r:
+        print("Centro encontrado:", r)
+    else:
+        print("Centro no encontrado")
+
+def actualizar_centro(centros):
+    nombre = input("Centro a actualizar: ")
+    for c in centros:
+        if c[1] == nombre:
+            c[2] = input("Nueva ruta: ")
+            c[3] = input("Nueva distancia: ")
+            c[4] = input("Nuevo costo: ")
+            print("Centro actualizado")
+            return
+    print("Centro no encontrado")
+
+
+
+def eliminar_centro(centros):
+    nombre = input("Centro a eliminar: ")
+    for c in centros:
+        if c[1] == nombre:
+            centros.remove(c)
+            print("Centro eliminado")
+            return
+    print("Centro no encontrado")
+
+
+
+def menu_admin():
+    centros = cargar_centros()
+
+    while True:
+        print("\nMENU ADMINISTRADOR")
+        print("1. Agregar centro")
+        print("2. Listar centros")
+        print("3. Consultar centro")
+        print("4. Actualizar centro")
+        print("5. Eliminar centro")
+        print("6. Guardar y salir")
+
+        op = input("Opción: ")
+
+        if op == "1":
+            agregar_centro(centros)
+        elif op == "2":
+            listar_centros(centros)
+        elif op == "3":
+            consultar_centro(centros)
+        elif op == "4":
+            actualizar_centro(centros)
+        elif op == "5":
+            eliminar_centro(centros)
+        elif op == "6":
+            guardar_centros(centros)
+            print("Datos guardados")
+            break
+
+
+
+while True:
+    print("\n1. Registrarse")
+    print("2. Iniciar sesión")
+    print("3. Salir")
+
+    opcion = input("Opción: ")
+
+    if opcion == "1":
+        registrar_usuario()
+    elif opcion == "2":
+        rol = iniciar_sesion()
+        if rol == "Administrador":
+            menu_admin()
+        elif rol == "Cliente":
+            print("Bienvenido cliente")
+        else:
+            print("Credenciales incorrectas")
+    elif opcion == "3":
+        print("Saliendo...")
+        break
